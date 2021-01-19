@@ -22,25 +22,53 @@ $dags = $Proj->getGroups();
 if ($storeheader == "on") {
     if($dags == null) 
     {
-        echo "User name,Role name,Expiration date\n";
+        echo "\"First Name\",\"Last Name\",\"Username\",\"User Email\",\"Role name\",\"Last login\"\n";
     } else {
-        echo "User name,Role name,Data access group,Expiration date\n";
+        echo "\"First Name\",\"Last Name\",\"Username\",\"User Email\",\"Role name\",\"Data access group\",\"Last login\"\n";
     }
     
 }
-$userrights = UserRights::getRightsAllUsers();
+$userrights = getRightsAllUsers();
 $roles =  UserRights::getRoles();
 if ($dags == null) {
     foreach($userrights as $username => $userdetails)
     {
-        echo $username.",".$roles[$userdetails["role_id"]]['role_name'].",".$userdetails['expiration']."\n";
+        echo "\"" . $userdetails['user_firstname'] . "\",\"" . $userdetails['user_lastname'] . "\",\"" . 
+            $username . "\",\"" . $userdetails['user_email'] . "\",\"" . $roles[$userdetails["role_id"]]['role_name'] . "\",\"" . 
+            $userdetails['user_lastlogin'] . "\"\n";
     }
 }
 else {
     foreach($userrights as $username => $userdetails)
     {
-        echo $username.",".$roles[$userdetails["role_id"]]['role_name'].",".$dags[$userdetails["group_id"]].",".$userdetails['expiration']."\n";
+        echo "\"" . $userdetails['user_firstname'] . "\",\"" . $userdetails['user_lastname'] . "\",\"" . $username . "\",\"" . 
+            $userdetails['user_email'] . "\",\"" . $roles[$userdetails["role_id"]]['role_name'] . "\",\"" . 
+            $dags[$userdetails["group_id"]] . "\",\"" . $userdetails['user_lastlogin'] . "\"\n";
     }
 }
 
+/*
+The same function in redcap (UserRights::getRightsAllUsers()) do not return the users email
+*/
+function getRightsAllUsers($enableDagLimiting=true){
+    global $user_rights;
+    // Pull all user/role info for this project
+    $users = array();
+    $group_sql = ($enableDagLimiting && $user_rights['group_id'] != "") ? "and u.group_id = '".$user_rights['group_id']."'" : "";
+    $sql = "SELECT u.*, i.user_firstname, i.user_lastname, trim(concat(i.user_firstname, ' ', i.user_lastname)) as user_fullname,
+            i.user_email, i.user_lastlogin
+            FROM redcap_user_rights AS u 
+            LEFT OUTER JOIN redcap_user_information AS i ON i.username = u.username
+            WHERE u.project_id = " . PROJECT_ID . " $group_sql ORDER BY u.username";
+    $q = db_query($sql);
+    while ($row = db_fetch_assoc($q)) {
+        // Set username so we can set as key and remove from array values
+        $username = $row['username'];
+        unset($row['username']);
+        // Add to array
+        $users[$username] = $row;
+    }
+    // Return array
+    return $users;
+}
 

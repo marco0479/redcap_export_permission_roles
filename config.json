@@ -7,6 +7,11 @@
       "name": "Lieven Vaneeckhaute",
       "email": "redcap@uzgent.be",
       "institution": "University Hospital Ghent"
+    },
+    {
+      "name": "Blua Marco",
+      "email": "bluamarco@me.com",
+      "institution": "EMN Italy"
     }
   ],
   "documentation" : "howto.html",
@@ -14,7 +19,7 @@
     "project": [
       {
         "name": "Export permissions",
-        "icon": "fas fa-file-upload",
+        "icon": "group",
         "url": "export.php",
         "show-header-and-footer": true
       }
